@@ -8,7 +8,7 @@ const app = (app) => {
         .post(multiparty(), numbers.checkFile)
 
     app.route('/api/v1/numbers/check')
-        .post(multiparty(), numbers.check)
+        .post(multiparty(), numbers.checkNumber)
 
 }
 

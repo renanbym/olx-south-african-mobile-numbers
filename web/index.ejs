@@ -24,7 +24,11 @@
             margin: 0px 20px;
             list-style: none;
             padding: 0px;
+            text-align: left;
+        }
 
+        ul:first-child{
+            width: 200px;
         }
 
         li:first-child{
@@ -35,9 +39,20 @@
             margin-bottom: 3px;
         }
 
+        li p{
+            width: 160px;
+            display: inline-block;
+            vertical-align: top;
+            margin: 0;
+            padding: 0px;
+        }
+
         small{
             margin-left: 5px;
             color: #a92f2f;
+            display: block;
+            margin-bottom: 20px;
+
         }
     
     </style>
@@ -61,7 +76,7 @@
 
         <button class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
     </form>
-    <div id="preview" style="width: 100%; max-width: 80%; padding: 15px; margin: 20px auto;"></div>
+    <div id="preview" style="width: 100%; max-width: 90%; padding: 15px; margin: 20px auto;"></div>
 
 
 </body>
@@ -145,17 +160,20 @@
                     newUl.appendChild(newLI);
                     for (data2 in json.result.incorrected) {
                         var newLI = document.createElement('li');
-                        newLI.appendChild(document.createTextNode(json.result.incorrected[data2].phone));
 
-                        var dateSmall = document.createElement('small')
-                        dateSmall.appendChild(document.createTextNode(json.result.incorrected[data2].reason))
-                        
-                        newLI.appendChild(dateSmall);
+                        var dataP = document.createElement('p')
+                        dataP.appendChild(document.createTextNode(json.result.incorrected[data2].phone));
+                        newLI.appendChild(dataP);
+
+                        var dataSmall = document.createElement('small')
+                        dataSmall.appendChild(document.createTextNode(json.result.incorrected[data2].reason))
+
+                        newLI.appendChild(dataSmall);
                         newUl.appendChild(newLI);
                     }
                     $preview.appendChild(newUl);
-    
-    
+
+
 
                 } else {
                     $preview.innerHTML = 'error loading file';

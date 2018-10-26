@@ -11,62 +11,112 @@ chai.use(chaiHttp);
 const { enumError } = require(path.resolve('./') + '/app/models/enums');
 
 
-const validFile = 'valid-file.csv';
 const invalidFile = 'invalid-file.csv';
-const validInvalidFile = 'valid-invalid-file.csv';
+const invalidFile2 = 'invalid-file2.csv';
 
+const correctFile = 'correct-file.csv';
+const incorrectFile = 'incorrect-file.csv';
+const correctAndIncorrectFile = 'correct-incorrect-file.csv';
 describe('API Numbers: ', () => {
 
 
     before((done) => {
-        fs.writeFile(validFile, "id,sms_phone\n103426733,27736529279\n103425998,27827678672", (err) => {
+        fs.writeFile(invalidFile, "id,sms_phone\n27736529279\n27827678672", (err) => {
             if (err) throw err;
         });
-        fs.writeFile(invalidFile, "+id,sms_phone\n103266195,639156553262_DELETED_1486721886", (err) => {
+        fs.writeFile(invalidFile2, "27736529279\n27827678672", (err) => {
             if (err) throw err;
         });
-        fs.writeFile(validInvalidFile, "id,sms_phone\n103425998,27827678672\n103266195,639156553262_DELETED_1486721886", (err) => {
+        fs.writeFile(correctFile, "id,sms_phone\n103426733,27736529279\n103425998,27827678672", (err) => {
+            if (err) throw err;
+        });
+        fs.writeFile(incorrectFile, "id,sms_phone\n103266195,639156553262_DELETED_1486721886", (err) => {
+            if (err) throw err;
+        });
+        fs.writeFile(correctAndIncorrectFile, "id,sms_phone\n103425998,27827678672\n103266195,639156553262_DELETED_1486721886", (err) => {
             if (err) throw err;
         });
         done();
     })
 
     after((done) => {
-        fs.unlink(validFile, (err) => {
-            if (err) throw err;
-        });
         fs.unlink(invalidFile, (err) => {
             if (err) throw err;
         });
-        fs.unlink(validInvalidFile, (err) => {
+        fs.unlink(invalidFile2, (err) => {
+            if (err) throw err;
+        });
+        fs.unlink(correctFile, (err) => {
+            if (err) throw err;
+        });
+        fs.unlink(incorrectFile, (err) => {
+            if (err) throw err;
+        });
+        fs.unlink(correctAndIncorrectFile, (err) => {
             if (err) throw err;
         });
         done();
     })
 
-    describe('GET /numbers/check/file', (done) => {
+    describe('GET /numbers/check/file', () => {
 
 
         it('does not return the POST, because undefined fields', (done) => {
             let data = {}
             request(server)
                 .post('/api/v1/numbers/check/file')
-                .set('Content-Type', 'application/json')
                 .send(data)
-                .end((err, res) => {
+                .end((err, resp) => {
+            
+                    resp.statusCode.should.be.equal(400);
+                    resp.body.code.should.be.equal(400);
+                    resp.body.status.should.be.equal('error');
 
-                    res.statusCode.should.be.equal(401);
-                    res.body.code.should.be.equal(401);
-                    res.body.status.should.be.equal('error');
                     done();
                 });
+        });
+
+        it('does not return the POST, because file is invalid', (done) => {
+
+            request(server)
+                .post('/api/v1/numbers/check/file')
+                .attach('file', invalidFile)
+                .end((err, res) => {
+
+                    res.statusCode.should.be.equal(406);
+                    res.body.code.should.be.equal(406);
+                    res.body.status.should.be.equal('error');
+                    res.body.message.should.be.equal(enumError.CONTENT_FORMAT);
+
+                    done();
+                });
+
+        });
+
+        it('does not return the POST, because file is invalid (2)', (done) => {
+
+            request(server)
+                .post('/api/v1/numbers/check/file')
+                .attach('file', invalidFile2)
+                .end((err, res) => {
+
+                    res.statusCode.should.be.equal(406);
+                    res.body.code.should.be.equal(406);
+                    res.body.status.should.be.equal('error');
+
+                    res.body.message.should.be.equal(enumError.INVALID_FORMAT);
+
+
+                    done();
+                });
+
         });
 
         it('should be return the object with corrects mobile numbers', (done) => {
 
             request(server)
                 .post('/api/v1/numbers/check/file')
-                .attach('file', validFile)
+                .attach('file', correctFile)
                 .end((err, res) => {
 
                     res.statusCode.should.be.equal(200);
@@ -85,9 +135,9 @@ describe('API Numbers: ', () => {
 
             request(server)
                 .post('/api/v1/numbers/check/file')
-                .attach('file', invalidFile)
+                .attach('file', incorrectFile)
                 .end((err, res) => {
-
+              
                     res.statusCode.should.be.equal(200);
                     res.body.code.should.be.equal(200);
                     res.body.status.should.be.equal('success');
@@ -104,7 +154,7 @@ describe('API Numbers: ', () => {
 
             request(server)
                 .post('/api/v1/numbers/check/file')
-                .attach('file', validInvalidFile)
+                .attach('file', correctAndIncorrectFile)
                 .end((err, res) => {
 
                     res.statusCode.should.be.equal(200);
@@ -130,12 +180,11 @@ describe('API Numbers: ', () => {
             }
             request(server)
                 .post('/api/v1/numbers/check')
-                .set('Content-Type', 'application/json')
                 .send(data)
                 .end((err, res) => {
 
-                    res.statusCode.should.be.equal(401);
-                    res.body.code.should.be.equal(401);
+                    res.statusCode.should.be.equal(400);
+                    res.body.code.should.be.equal(400);
                     res.body.status.should.be.equal('error');
                     done();
                 });
@@ -148,7 +197,6 @@ describe('API Numbers: ', () => {
             }
             request(server)
                 .post('/api/v1/numbers/check')
-                .set('Content-Type', 'application/json')
                 .send(data)
                 .end((err, res) => {
 
@@ -167,11 +215,10 @@ describe('API Numbers: ', () => {
             }
             request(server)
                 .post('/api/v1/numbers/check')
-                .set('Content-Type', 'application/json')
                 .send(data)
                 .end((err, res) => {
-                    res.statusCode.should.be.equal(401);
-                    res.body.code.should.be.equal(401);
+                    res.statusCode.should.be.equal(400);
+                    res.body.code.should.be.equal(400);
                     res.body.status.should.be.equal('error');
                     res.body.message.should.be.equal(enumError.ONLY_NUMBER);
                     done();
@@ -184,11 +231,10 @@ describe('API Numbers: ', () => {
             }
             request(server)
                 .post('/api/v1/numbers/check')
-                .set('Content-Type', 'application/json')
                 .send(data)
                 .end((err, res) => {
-                    res.statusCode.should.be.equal(401);
-                    res.body.code.should.be.equal(401);
+                    res.statusCode.should.be.equal(400);
+                    res.body.code.should.be.equal(400);
                     res.body.status.should.be.equal('error');
                     res.body.message.should.be.equal(enumError.BEGIN_NUMBER);
                     done();
@@ -201,11 +247,10 @@ describe('API Numbers: ', () => {
             }
             request(server)
                 .post('/api/v1/numbers/check')
-                .set('Content-Type', 'application/json')
                 .send(data)
                 .end((err, res) => {
-                    res.statusCode.should.be.equal(401);
-                    res.body.code.should.be.equal(401);
+                    res.statusCode.should.be.equal(400);
+                    res.body.code.should.be.equal(400);
                     res.body.status.should.be.equal('error');
                     res.body.message.should.be.equal(enumError.COUNT_NUMBER);
                     done();

@@ -1,3 +1,5 @@
+process.on('unhandledRejection', up => { throw up })
+
 const express = require('express');
 const load = require('express-load');
 const bodyParser = require('body-parser');
