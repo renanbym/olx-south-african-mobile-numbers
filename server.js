@@ -1,35 +1,30 @@
-import express from 'express';
-import load from 'load';
-import bodyParser from 'bodyParser';
-
-const credentials = require('./config/config')[process.env.NODE_ENV]
+const express = require('express');
+const load = require('express-load');
+const bodyParser = require('body-parser');
+const http = require('http');
 
 const app = express()
 const server = http.createServer(app)
 
-app.disable('x-powered-by');
-app.set('trust proxy', 1)
-
+app.set('view engine', 'ejs')
 app.set('views', './web')
 
-app.use('/public', express.static('./web/public'))
-app.use('/node_modules', express.static('./node_modules'))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
+app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); next(); });
 
-load('models', { cwd: 'app' })
-    .then('controllers')
+load('controllers', { cwd: 'app' })
     .then('routes')
     .into(app)
 
 app.get('/', (req, res) => {
-    res.render('index.html')
+    res.render('index.ejs')
 })
 
-server.listen(process.env.PORT || credentials.port)
+server.listen(process.env.PORT || 3001)
     .on('listening', () => {
-        console.log('Run, forest run', process.env.NODE_ENV, credentials.port)
+        console.log('run, forest!', process.env.NODE_ENV, process.env.PORT || 3001)
     })
 
-export default app
+module.exports = app

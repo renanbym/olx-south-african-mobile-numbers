@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html ng-app="k121">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+
+    <style>
+        .error{
+            color: #a92f2f;
+        }
+
+        .success{
+            color: #004a0e;
+        }
+
+        ul{
+            display: inline-block;
+            vertical-align: top;
+            width: 40%;
+            margin: 0px 20px;
+            list-style: none;
+            padding: 0px;
+
+        }
+
+        li:first-child{
+            color: #000;
+            font-size: 16px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 3px;
+            margin-bottom: 3px;
+        }
+
+        small{
+            margin-left: 5px;
+            color: #a92f2f;
+        }
+    
+    </style>
+
+    <title>Olx</title>
+
+</head>
+
+
+<body class="text-center" style="background-color: #f5f5f5;">
+
+    <form action='/api/v1/numbers/check' id="form-upload-html" method='post' encType="multipart/form-data" style="width: 100%; max-width: 330px; padding: 15px; margin: 20px auto 0px auto;">
+        <input type="text" name="number" class="form-control" />
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Check</button>
+    </form>
+    <div id="preview-html" style="width: 100%; max-width: 330px; padding: 15px; margin: 20px auto;"></div>
+
+    <form action='/api/v1/numbers/check/file' id="form-upload" method='post' encType="multipart/form-data" style="width: 100%; max-width: 330px; padding: 15px; margin: 20px auto 0px auto;">
+        <input type="file" name="file" class="form-control" />
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
+    </form>
+    <div id="preview" style="width: 100%; max-width: 80%; padding: 15px; margin: 20px auto;"></div>
+
+
+</body>
+
+<script>
+
+    function $(element) {
+        return document.getElementsByClassName(element);
+    }
+
+
+    var $formUploadHtml = document.getElementById('form-upload-html'),
+        $previewHtml = document.getElementById('preview-html');
+
+    $formUploadHtml.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", $formUploadHtml.getAttribute('action'));
+        xhr.responseType = "text";
+        var formData = new FormData($formUploadHtml);
+        xhr.send(formData);
+        xhr.addEventListener('readystatechange', function () {
+            $previewHtml.innerHTML = '';
+            var json = xhr.responseText ? JSON.parse(xhr.responseText) : [];
+
+            $previewHtml.classList.remove('success');
+            $previewHtml.classList.remove('error');
+
+            if (json) $previewHtml.classList.add(json.status);
+
+            if (xhr.readyState === 4 && xhr.status == 200) {
+                if (json) {
+                    $previewHtml.innerHTML = json.result.phone;
+                } else {
+                    $previewHtml.innerHTML = 'error loading file';
+                }
+            } else {
+                $previewHtml.innerHTML = json.message;
+            }
+        });
+    }, false);
+
+
+    var $formUpload = document.getElementById('form-upload'),
+        $preview = document.getElementById('preview');
+
+    $formUpload.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", $formUpload.getAttribute('action'));
+        xhr.responseType = "text";
+        var formData = new FormData($formUpload);
+        xhr.send(formData);
+        xhr.addEventListener('readystatechange', function () {
+            $preview.innerHTML = '';
+            var json = xhr.responseText ? JSON.parse(xhr.responseText) : [];
+
+            $preview.classList.remove('success');
+            $preview.classList.remove('error');
+
+            if (json) $preview.classList.add(json.status);
+
+            if (xhr.readyState === 4 && xhr.status == 200) {
+                if (json) {
+
+                    var newUl = document.createElement('ul');
+                    var newLI = document.createElement('li');
+                    newLI.appendChild(document.createTextNode('Correct numbers'));
+                    newUl.appendChild(newLI);
+                    for (data in json.result.corrected) {
+                        var newLI = document.createElement('li');
+                        newLI.appendChild(document.createTextNode(json.result.corrected[data].phone));
+                        newUl.appendChild(newLI);
+                    }
+                    $preview.appendChild(newUl);
+
+
+                    var newUl = document.createElement('ul');
+                    var newLI = document.createElement('li');
+                    newLI.appendChild(document.createTextNode('Incorrect numbers'));
+                    newUl.appendChild(newLI);
+                    for (data2 in json.result.incorrected) {
+                        var newLI = document.createElement('li');
+                        newLI.appendChild(document.createTextNode(json.result.incorrected[data2].phone));
+
+                        var dateSmall = document.createElement('small')
+                        dateSmall.appendChild(document.createTextNode(json.result.incorrected[data2].reason))
+                        
+                        newLI.appendChild(dateSmall);
+                        newUl.appendChild(newLI);
+                    }
+                    $preview.appendChild(newUl);
+    
+    
+
+                } else {
+                    $preview.innerHTML = 'error loading file';
+                }
+            } else {
+                $preview.innerHTML = json.message;
+            }
+        });
+    }, false);
+
+</script>
+
+</html>
